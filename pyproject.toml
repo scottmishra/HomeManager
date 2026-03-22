@@ -1,3 +1,10 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["backend*", "tests*"]
+
 [project]
 name = "homemanager"
 version = "0.1.0"
@@ -20,7 +27,6 @@ dependencies = [
     "httpx>=0.28.0",
     # RAG / Document Processing
     "pypdf>=5.0.0",
-    "unstructured>=0.16.0",
     "tiktoken>=0.8.0",
     # Scheduling
     "apscheduler>=3.10.0",
