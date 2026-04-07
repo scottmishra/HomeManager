@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """HomeManager CLI — Interactive terminal tool for testing the API."""
 
+import argparse
 import json
 import os
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -700,5 +702,35 @@ def main() -> None:
             prototype_menu()
 
 
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="HomeManager CLI")
+    parser.add_argument(
+        "--prototype-chat",
+        metavar="MESSAGE",
+        help="Send a single message to the prototype chat endpoint and exit (non-interactive)",
+    )
+    parser.add_argument(
+        "--system-prompt",
+        metavar="PROMPT",
+        default=None,
+        help="Optional system prompt for --prototype-chat",
+    )
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    main()
+    args = _parse_args()
+
+    if args.prototype_chat:
+        body: dict = {"message": args.prototype_chat}
+        if args.system_prompt:
+            body["system_prompt"] = args.system_prompt
+        try:
+            resp = api_post("/api/v1/prototype/chat", body)
+            sys.stdout.buffer.write((resp.get("message", "") + "\n").encode("utf-8"))
+            sys.stdout.buffer.flush()
+        except Exception as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+    else:
+        main()

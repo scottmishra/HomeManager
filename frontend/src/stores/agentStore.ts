@@ -15,6 +15,21 @@ export type AgentAction =
   | "find_contractor"
   | "chat";
 
+const ACTION_LABELS: Record<AgentAction, string> = {
+  setup_home: "Set Up Home",
+  update_home: "Update Home",
+  add_appliance: "Add Appliance",
+  identify_appliance: "Identify Appliance",
+  generate_schedule: "Generate Schedule",
+  adjust_schedule: "Adjust Schedule",
+  get_how_to: "How-To Guide",
+  get_product_recommendation: "Product Recommendation",
+  process_document: "Process Document",
+  ask_document: "Ask About Document",
+  find_contractor: "Find Contractor",
+  chat: "General Chat",
+};
+
 export interface AgentMessage {
   id: string;
   role: "user" | "agent";
@@ -24,7 +39,12 @@ export interface AgentMessage {
   timestamp: Date;
 }
 
-interface AgentResponse {
+interface PrototypeChatResponse {
+  message: string;
+  sdk: string;
+}
+
+interface UploadResponse {
   action: AgentAction;
   message: string;
   data?: Record<string, unknown>;
@@ -36,7 +56,7 @@ interface AgentState {
   isProcessing: boolean;
   sendMessage: (
     message: string,
-    action: AgentAction,
+    action?: AgentAction,
     homeId?: string,
   ) => Promise<void>;
   uploadDocument: (file: File, homeId: string) => Promise<void>;
@@ -49,7 +69,7 @@ export const useAgentStore = create<AgentState>((set) => ({
   messages: [],
   isProcessing: false,
 
-  sendMessage: async (message, action, homeId) => {
+  sendMessage: async (message, action = "chat", homeId) => {
     const userMsg: AgentMessage = {
       id: `msg-${++msgCounter}`,
       role: "user",
@@ -60,17 +80,19 @@ export const useAgentStore = create<AgentState>((set) => ({
     set((s) => ({ messages: [...s.messages, userMsg], isProcessing: true }));
 
     try {
-      const response = await api.post<AgentResponse>("/agent/chat", {
-        action,
+      const systemPrompt =
+        action !== "chat"
+          ? `You are a helpful home maintenance assistant. The user wants to: ${ACTION_LABELS[action]}.`
+          : "You are a helpful home maintenance assistant.";
+
+      const response = await api.post<PrototypeChatResponse>("/prototype/chat", {
         message,
-        home_id: homeId,
+        system_prompt: systemPrompt,
       });
       const agentMsg: AgentMessage = {
         id: `msg-${++msgCounter}`,
         role: "agent",
         content: response.message,
-        action: response.action,
-        suggestedActions: response.suggested_actions,
         timestamp: new Date(),
       };
       set((s) => ({
@@ -103,7 +125,7 @@ export const useAgentStore = create<AgentState>((set) => ({
     set((s) => ({ messages: [...s.messages, userMsg] }));
 
     try {
-      const response = await api.upload<AgentResponse>(
+      const response = await api.upload<UploadResponse>(
         "/agent/document",
         file,
         { home_id: homeId },

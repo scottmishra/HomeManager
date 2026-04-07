@@ -1,26 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, Loader2 } from "lucide-react";
-import { useAgentStore, type AgentAction } from "../../stores/agentStore";
+import { useAgentStore } from "../../stores/agentStore";
 import { useHomeStore } from "../../stores/homeStore";
-
-const ACTION_LABELS: Record<AgentAction, string> = {
-  setup_home: "Set Up Home",
-  update_home: "Update Home",
-  add_appliance: "Add Appliance",
-  identify_appliance: "Identify Appliance",
-  generate_schedule: "Generate Schedule",
-  adjust_schedule: "Adjust Schedule",
-  get_how_to: "How-To Guide",
-  get_product_recommendation: "Product Recommendation",
-  process_document: "Process Document",
-  ask_document: "Ask About Document",
-  find_contractor: "Find Contractor",
-  chat: "General Chat",
-};
 
 export function ChatInterface() {
   const [input, setInput] = useState("");
-  const [action, setAction] = useState<AgentAction>("chat");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -36,7 +20,7 @@ export function ChatInterface() {
     if (!input.trim() || isProcessing) return;
     const msg = input;
     setInput("");
-    await sendMessage(msg, action, selectedHome?.id);
+    await sendMessage(msg, "chat", selectedHome?.id);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,19 +56,6 @@ export function ChatInterface() {
               }`}
             >
               <p className="whitespace-pre-wrap">{msg.content}</p>
-              {msg.suggestedActions && msg.suggestedActions.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {msg.suggestedActions.map((a) => (
-                    <button
-                      key={a}
-                      onClick={() => setAction(a)}
-                      className="rounded-full bg-brand-50 px-3 py-1 text-xs text-brand-700 hover:bg-brand-100"
-                    >
-                      {ACTION_LABELS[a]}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         ))}
@@ -98,25 +69,8 @@ export function ChatInterface() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Action selector + Input */}
+      {/* Input */}
       <div className="border-t border-gray-200 bg-white p-3">
-        <div className="mb-2 flex gap-2 overflow-x-auto pb-1">
-          {(Object.entries(ACTION_LABELS) as [AgentAction, string][]).map(
-            ([key, label]) => (
-              <button
-                key={key}
-                onClick={() => setAction(key)}
-                className={`whitespace-nowrap rounded-full px-3 py-1 text-xs ${
-                  action === key
-                    ? "bg-brand-600 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                {label}
-              </button>
-            ),
-          )}
-        </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => fileInputRef.current?.click()}
