@@ -22,6 +22,7 @@ export function CompleteTaskModal({
   const [error, setError] = useState<string | null>(null);
 
   const handleConfirm = async () => {
+    if (isSubmitting) return;
     setIsSubmitting(true);
     setError(null);
     try {
@@ -35,7 +36,29 @@ export function CompleteTaskModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Mark Task Complete">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Mark Task Complete"
+      footer={
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="flex-1 rounded-lg border border-warm-200 px-4 py-2.5 text-sm font-medium text-warm-700 transition-colors hover:bg-warm-50 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={isSubmitting}
+            className="flex-1 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+          >
+            {isSubmitting ? "Saving…" : "Mark Complete"}
+          </button>
+        </div>
+      }
+    >
       <div className="space-y-4">
         <p className="text-sm text-warm-700">
           <span className="font-medium">{taskTitle}</span>
@@ -54,22 +77,6 @@ export function CompleteTaskModal({
           />
         </div>
         {error && <p className="text-sm text-red-500">{error}</p>}
-        <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="flex-1 rounded-lg border border-warm-200 px-4 py-2.5 text-sm font-medium text-warm-700 transition-colors hover:bg-warm-50 disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleConfirm}
-            disabled={isSubmitting}
-            className="flex-1 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
-          >
-            {isSubmitting ? "Saving…" : "Mark Complete"}
-          </button>
-        </div>
       </div>
     </Modal>
   );

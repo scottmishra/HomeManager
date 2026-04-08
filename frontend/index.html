@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#c4622d" />
     <title>HomeManager</title>
+    <!-- Apply saved theme before first paint to prevent flash -->
+    <script>
+      (function () {
+        var t = localStorage.getItem("theme");
+        if (t === "dark") document.documentElement.setAttribute("data-theme", "dark");
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

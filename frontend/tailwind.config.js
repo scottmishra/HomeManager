@@ -16,17 +16,20 @@ export default {
           800: "#7e3c18",
           900: "#5a2a0f",
         },
+        // Warm scale uses CSS variables so the entire palette flips in dark mode
+        // without touching individual components. Values are RGB channels
+        // so Tailwind's opacity modifiers (e.g. bg-warm-200/50) still work.
         warm: {
-          50:  "#f7f4ef",
-          100: "#f0ebe2",
-          200: "#e8e4db",
-          300: "#d8d3c8",
-          400: "#bfb9ac",
-          500: "#9e9888",
-          600: "#6b6b5e",
-          700: "#4a4a3e",
-          800: "#2e2e25",
-          900: "#1a1a18",
+          50:  "rgb(var(--warm-50)  / <alpha-value>)",
+          100: "rgb(var(--warm-100) / <alpha-value>)",
+          200: "rgb(var(--warm-200) / <alpha-value>)",
+          300: "rgb(var(--warm-300) / <alpha-value>)",
+          400: "rgb(var(--warm-400) / <alpha-value>)",
+          500: "rgb(var(--warm-500) / <alpha-value>)",
+          600: "rgb(var(--warm-600) / <alpha-value>)",
+          700: "rgb(var(--warm-700) / <alpha-value>)",
+          800: "rgb(var(--warm-800) / <alpha-value>)",
+          900: "rgb(var(--warm-900) / <alpha-value>)",
         },
         sage: {
           50:  "#f3f7f0",

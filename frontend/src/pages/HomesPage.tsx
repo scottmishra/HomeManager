@@ -45,11 +45,13 @@ export function HomesPage() {
   const [editingHome, setEditingHome] = useState<HomeModel | null>(null);
   const [confirmDeleteHome, setConfirmDeleteHome] = useState<HomeModel | null>(null);
   const [deletingHome, setDeletingHome] = useState(false);
+  const [homeFormSubmitting, setHomeFormSubmitting] = useState(false);
 
   const [applianceModalOpen, setApplianceModalOpen] = useState(false);
   const [editingAppliance, setEditingAppliance] = useState<Appliance | null>(null);
   const [confirmDeleteAppliance, setConfirmDeleteAppliance] = useState<Appliance | null>(null);
   const [deletingAppliance, setDeletingAppliance] = useState(false);
+  const [applianceFormSubmitting, setApplianceFormSubmitting] = useState(false);
 
   const [docUploadOpen, setDocUploadOpen] = useState(false);
 
@@ -237,8 +239,24 @@ export function HomesPage() {
       )}
 
       {/* Modals */}
-      <Modal isOpen={homeModalOpen} onClose={closeHomeModal} title={editingHome ? "Edit Home" : "Add Home"}>
-        <HomeForm initialValues={editingHome ?? undefined} onSubmit={handleHomeSubmit} onCancel={closeHomeModal} submitLabel={editingHome ? "Save Changes" : "Create Home"} />
+      <Modal
+        isOpen={homeModalOpen}
+        onClose={closeHomeModal}
+        title={editingHome ? "Edit Home" : "Add Home"}
+        footer={
+          <div className="flex gap-3">
+            <button type="button" onClick={closeHomeModal} disabled={homeFormSubmitting}
+              className="flex-1 rounded-lg border border-warm-200 px-4 py-2.5 text-sm font-medium text-warm-700 transition-colors hover:bg-warm-50 disabled:opacity-50">
+              Cancel
+            </button>
+            <button type="submit" form="home-form" disabled={homeFormSubmitting}
+              className="flex-1 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+              {homeFormSubmitting ? "Saving…" : editingHome ? "Save Changes" : "Create Home"}
+            </button>
+          </div>
+        }
+      >
+        <HomeForm formId="home-form" initialValues={editingHome ?? undefined} onSubmit={handleHomeSubmit} onCancel={closeHomeModal} onSubmittingChange={setHomeFormSubmitting} />
       </Modal>
 
       <ConfirmDialog
@@ -250,9 +268,25 @@ export function HomesPage() {
         isLoading={deletingHome}
       />
 
-      <Modal isOpen={applianceModalOpen} onClose={closeApplianceModal} title={editingAppliance ? "Edit Appliance" : "Add Appliance"}>
+      <Modal
+        isOpen={applianceModalOpen}
+        onClose={closeApplianceModal}
+        title={editingAppliance ? "Edit Appliance" : "Add Appliance"}
+        footer={
+          <div className="flex gap-3">
+            <button type="button" onClick={closeApplianceModal} disabled={applianceFormSubmitting}
+              className="flex-1 rounded-lg border border-warm-200 px-4 py-2.5 text-sm font-medium text-warm-700 transition-colors hover:bg-warm-50 disabled:opacity-50">
+              Cancel
+            </button>
+            <button type="submit" form="appliance-form" disabled={applianceFormSubmitting}
+              className="flex-1 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+              {applianceFormSubmitting ? "Saving…" : editingAppliance ? "Save Changes" : "Add Appliance"}
+            </button>
+          </div>
+        }
+      >
         {selectedHome && (
-          <ApplianceForm homeId={selectedHome.id} initialValues={editingAppliance ?? undefined} onSubmit={handleApplianceSubmit} onCancel={closeApplianceModal} submitLabel={editingAppliance ? "Save Changes" : "Add Appliance"} />
+          <ApplianceForm formId="appliance-form" homeId={selectedHome.id} initialValues={editingAppliance ?? undefined} onSubmit={handleApplianceSubmit} onCancel={closeApplianceModal} onSubmittingChange={setApplianceFormSubmitting} />
         )}
       </Modal>
 

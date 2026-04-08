@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Home } from "../../stores/homeStore";
 import { FormField } from "../ui/FormField";
 import { SelectField } from "../ui/SelectField";
@@ -47,17 +47,21 @@ function defaultValues(initial?: Partial<Home>): HomeFormValues {
 }
 
 interface HomeFormProps {
+  formId: string;
   initialValues?: Partial<Home>;
   onSubmit: (values: Partial<Home>) => Promise<void>;
   onCancel: () => void;
   submitLabel?: string;
+  onSubmittingChange?: (v: boolean) => void;
 }
 
 export function HomeForm({
+  formId,
   initialValues,
   onSubmit,
-  onCancel,
-  submitLabel = "Create Home",
+  onCancel: _onCancel,
+  submitLabel: _submitLabel = "Create Home",
+  onSubmittingChange,
 }: HomeFormProps) {
   const [values, setValues] = useState<HomeFormValues>(
     defaultValues(initialValues),
@@ -65,6 +69,8 @@ export function HomeForm({
   const [errors, setErrors] = useState<Partial<Record<keyof HomeFormValues, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => { onSubmittingChange?.(isSubmitting); }, [isSubmitting, onSubmittingChange]);
 
   const handleChange =
     (field: keyof HomeFormValues) =>
@@ -84,7 +90,7 @@ export function HomeForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (isSubmitting || !validate()) return;
     setIsSubmitting(true);
     setSubmitError(null);
     try {
@@ -115,7 +121,7 @@ export function HomeForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-4">
       <FormField label="Home Name" required error={errors.name}>
         <input
           type="text"
@@ -246,24 +252,6 @@ export function HomeForm({
       {submitError && (
         <p className="text-sm text-red-500">{submitError}</p>
       )}
-
-      <div className="sticky bottom-0 mt-4 flex gap-3 border-t border-warm-100 bg-white pt-3">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isSubmitting}
-          className="flex-1 rounded-lg border border-warm-200 px-4 py-2.5 text-sm font-medium text-warm-700 transition-colors hover:bg-warm-50 disabled:opacity-50"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="flex-1 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-        >
-          {isSubmitting ? "Saving…" : submitLabel}
-        </button>
-      </div>
     </form>
   );
 }

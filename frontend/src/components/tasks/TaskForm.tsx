@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { MaintenanceTask } from "../../stores/maintenanceStore";
 import type { Appliance } from "../../stores/applianceStore";
 import { FormField } from "../ui/FormField";
@@ -60,20 +60,24 @@ function defaultValues(initial?: Partial<MaintenanceTask>): TaskFormValues {
 }
 
 interface TaskFormProps {
+  formId: string;
   homeId: string;
   appliances: Appliance[];
   initialValues?: Partial<MaintenanceTask>;
   onSubmit: (values: Partial<MaintenanceTask>) => Promise<void>;
   onCancel: () => void;
   submitLabel?: string;
+  onSubmittingChange?: (v: boolean) => void;
 }
 
 export function TaskForm({
+  formId,
   appliances,
   initialValues,
   onSubmit,
-  onCancel,
-  submitLabel = "Create Task",
+  onCancel: _onCancel,
+  submitLabel: _submitLabel = "Create Task",
+  onSubmittingChange,
 }: TaskFormProps) {
   const isEditing = !!initialValues?.id;
   const [values, setValues] = useState<TaskFormValues>(
@@ -82,6 +86,8 @@ export function TaskForm({
   const [errors, setErrors] = useState<Partial<Record<keyof TaskFormValues, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => { onSubmittingChange?.(isSubmitting); }, [isSubmitting, onSubmittingChange]);
 
   const applianceOptions = [
     { value: "", label: "None" },
@@ -106,7 +112,7 @@ export function TaskForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (isSubmitting || !validate()) return;
     setIsSubmitting(true);
     setSubmitError(null);
     try {
@@ -135,7 +141,7 @@ export function TaskForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-4">
       <FormField label="Title" required error={errors.title}>
         <input
           type="text"
@@ -227,24 +233,6 @@ export function TaskForm({
       {submitError && (
         <p className="text-sm text-red-500">{submitError}</p>
       )}
-
-      <div className="sticky bottom-0 mt-4 flex gap-3 border-t border-warm-100 bg-white pt-3">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isSubmitting}
-          className="flex-1 rounded-lg border border-warm-200 px-4 py-2.5 text-sm font-medium text-warm-700 transition-colors hover:bg-warm-50 disabled:opacity-50"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="flex-1 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-        >
-          {isSubmitting ? "Saving…" : submitLabel}
-        </button>
-      </div>
     </form>
   );
 }

@@ -46,6 +46,7 @@ export function SchedulePage() {
   const [confirmDeleteTask, setConfirmDeleteTask] = useState<MaintenanceTask | null>(null);
   const [deletingTask, setDeletingTask] = useState(false);
   const [completingTask, setCompletingTask] = useState<MaintenanceTask | null>(null);
+  const [taskFormSubmitting, setTaskFormSubmitting] = useState(false);
 
   useEffect(() => {
     if (selectedHome) {
@@ -223,15 +224,28 @@ export function SchedulePage() {
         isOpen={taskModalOpen}
         onClose={closeTaskModal}
         title={editingTask ? "Edit Task" : "New Task"}
+        footer={
+          <div className="flex gap-3">
+            <button type="button" onClick={closeTaskModal} disabled={taskFormSubmitting}
+              className="flex-1 rounded-lg border border-warm-200 px-4 py-2.5 text-sm font-medium text-warm-700 transition-colors hover:bg-warm-50 disabled:opacity-50">
+              Cancel
+            </button>
+            <button type="submit" form="task-form" disabled={taskFormSubmitting}
+              className="flex-1 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+              {taskFormSubmitting ? "Saving…" : editingTask ? "Save Changes" : "Create Task"}
+            </button>
+          </div>
+        }
       >
         {selectedHome && (
           <TaskForm
+            formId="task-form"
             homeId={selectedHome.id}
             appliances={appliances}
             initialValues={editingTask ?? undefined}
             onSubmit={handleTaskSubmit}
             onCancel={closeTaskModal}
-            submitLabel={editingTask ? "Save Changes" : "Create Task"}
+            onSubmittingChange={setTaskFormSubmitting}
           />
         )}
       </Modal>

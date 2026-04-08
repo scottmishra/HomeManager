@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Appliance } from "../../stores/applianceStore";
 import { FormField } from "../ui/FormField";
 import { SelectField } from "../ui/SelectField";
@@ -47,18 +47,22 @@ function defaultValues(initial?: Partial<Appliance>): ApplianceFormValues {
 }
 
 interface ApplianceFormProps {
+  formId: string;
   homeId: string;
   initialValues?: Partial<Appliance>;
   onSubmit: (values: Partial<Appliance>) => Promise<void>;
   onCancel: () => void;
   submitLabel?: string;
+  onSubmittingChange?: (v: boolean) => void;
 }
 
 export function ApplianceForm({
+  formId,
   initialValues,
   onSubmit,
-  onCancel,
-  submitLabel = "Add Appliance",
+  onCancel: _onCancel,
+  submitLabel: _submitLabel = "Add Appliance",
+  onSubmittingChange,
 }: ApplianceFormProps) {
   const [values, setValues] = useState<ApplianceFormValues>(
     defaultValues(initialValues),
@@ -66,6 +70,8 @@ export function ApplianceForm({
   const [errors, setErrors] = useState<Partial<Record<keyof ApplianceFormValues, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => { onSubmittingChange?.(isSubmitting); }, [isSubmitting, onSubmittingChange]);
 
   const handleChange =
     (field: keyof ApplianceFormValues) =>
@@ -85,7 +91,7 @@ export function ApplianceForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (isSubmitting || !validate()) return;
     setIsSubmitting(true);
     setSubmitError(null);
     try {
@@ -108,7 +114,7 @@ export function ApplianceForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-4">
       <FormField label="Appliance Name" required error={errors.name}>
         <input
           type="text"
@@ -207,24 +213,6 @@ export function ApplianceForm({
       {submitError && (
         <p className="text-sm text-red-500">{submitError}</p>
       )}
-
-      <div className="sticky bottom-0 mt-4 flex gap-3 border-t border-warm-100 bg-white pt-3">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isSubmitting}
-          className="flex-1 rounded-lg border border-warm-200 px-4 py-2.5 text-sm font-medium text-warm-700 transition-colors hover:bg-warm-50 disabled:opacity-50"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="flex-1 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-        >
-          {isSubmitting ? "Saving…" : submitLabel}
-        </button>
-      </div>
     </form>
   );
 }
