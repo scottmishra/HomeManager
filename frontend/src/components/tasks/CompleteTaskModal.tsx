@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Modal } from "../ui/Modal";
 
 const INPUT_CLASS =
-  "w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500";
+  "w-full rounded-lg border border-warm-200 bg-white px-3 py-2.5 text-sm text-warm-900 placeholder:text-warm-400 transition-colors focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/30";
 
 interface CompleteTaskModalProps {
   isOpen: boolean;
@@ -37,13 +37,13 @@ export function CompleteTaskModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Mark Task Complete">
       <div className="space-y-4">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-warm-700">
           <span className="font-medium">{taskTitle}</span>
         </p>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium text-warm-700">
             Notes{" "}
-            <span className="font-normal text-gray-400">(optional)</span>
+            <span className="font-normal text-warm-400">(optional)</span>
           </label>
           <textarea
             value={notes}
@@ -58,7 +58,7 @@ export function CompleteTaskModal({
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="flex-1 rounded-lg border border-warm-200 px-4 py-2.5 text-sm font-medium text-warm-700 transition-colors hover:bg-warm-50 disabled:opacity-50"
           >
             Cancel
           </button>

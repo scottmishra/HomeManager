@@ -5,7 +5,7 @@ import { FormField } from "../ui/FormField";
 import { SelectField } from "../ui/SelectField";
 
 const INPUT_CLASS =
-  "w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:bg-gray-50";
+  "w-full rounded-lg border border-warm-200 bg-white px-3 py-2.5 text-sm text-warm-900 placeholder:text-warm-400 transition-colors focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/30 disabled:bg-warm-50 disabled:text-warm-400";
 
 const PRIORITY_OPTIONS = [
   { value: "low", label: "Low" },
@@ -228,12 +228,12 @@ export function TaskForm({
         <p className="text-sm text-red-500">{submitError}</p>
       )}
 
-      <div className="sticky bottom-0 bg-white pt-3 border-t border-gray-100 mt-4 flex gap-3">
+      <div className="sticky bottom-0 mt-4 flex gap-3 border-t border-warm-100 bg-white pt-3">
         <button
           type="button"
           onClick={onCancel}
           disabled={isSubmitting}
-          className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          className="flex-1 rounded-lg border border-warm-200 px-4 py-2.5 text-sm font-medium text-warm-700 transition-colors hover:bg-warm-50 disabled:opacity-50"
         >
           Cancel
         </button>

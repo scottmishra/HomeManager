@@ -2,17 +2,15 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   CheckCircle2,
-  Circle,
-  Clock,
-  AlertTriangle,
   Plus,
   Pencil,
   Trash2,
+  Sparkles,
 } from "lucide-react";
 import { useMaintenanceStore, type MaintenanceTask } from "../stores/maintenanceStore";
 import { useApplianceStore } from "../stores/applianceStore";
 import { useHomeStore } from "../stores/homeStore";
-import { Modal, ConfirmDialog } from "../components/ui";
+import { Modal, ConfirmDialog, Badge } from "../components/ui";
 import { TaskForm } from "../components/tasks/TaskForm";
 import { CompleteTaskModal } from "../components/tasks/CompleteTaskModal";
 
@@ -24,11 +22,16 @@ const STATUS_FILTERS = [
   "completed",
 ] as const;
 
-const PRIORITY_ICON = {
-  urgent: <AlertTriangle className="h-4 w-4 text-red-500" />,
-  high: <AlertTriangle className="h-4 w-4 text-amber-500" />,
-  medium: <Clock className="h-4 w-4 text-blue-500" />,
-  low: <Circle className="h-4 w-4 text-gray-400" />,
+const PRIORITY_BORDER: Record<string, string> = {
+  urgent: "border-l-red-500",
+  high:   "border-l-gold-400",
+  medium: "border-l-warm-300",
+  low:    "border-l-warm-200",
+};
+
+const STATUS_OPACITY: Record<string, string> = {
+  completed: "opacity-60",
+  skipped:   "opacity-50",
 };
 
 export function SchedulePage() {
@@ -38,40 +41,22 @@ export function SchedulePage() {
     useMaintenanceStore();
   const { appliances, fetchAppliances } = useApplianceStore();
 
-  // Task modal state
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<MaintenanceTask | null>(null);
-  const [confirmDeleteTask, setConfirmDeleteTask] =
-    useState<MaintenanceTask | null>(null);
+  const [confirmDeleteTask, setConfirmDeleteTask] = useState<MaintenanceTask | null>(null);
   const [deletingTask, setDeletingTask] = useState(false);
-
-  // Complete task modal state
-  const [completingTask, setCompletingTask] = useState<MaintenanceTask | null>(
-    null,
-  );
+  const [completingTask, setCompletingTask] = useState<MaintenanceTask | null>(null);
 
   useEffect(() => {
     if (selectedHome) {
-      fetchTasks(
-        selectedHome.id,
-        statusFilter === "all" ? undefined : statusFilter,
-      );
+      fetchTasks(selectedHome.id, statusFilter === "all" ? undefined : statusFilter);
       fetchAppliances(selectedHome.id);
     }
   }, [selectedHome, statusFilter, fetchTasks, fetchAppliances]);
 
-  const openCreateTask = () => {
-    setEditingTask(null);
-    setTaskModalOpen(true);
-  };
-  const openEditTask = (task: MaintenanceTask) => {
-    setEditingTask(task);
-    setTaskModalOpen(true);
-  };
-  const closeTaskModal = () => {
-    setTaskModalOpen(false);
-    setEditingTask(null);
-  };
+  const openCreateTask = () => { setEditingTask(null); setTaskModalOpen(true); };
+  const openEditTask = (task: MaintenanceTask) => { setEditingTask(task); setTaskModalOpen(true); };
+  const closeTaskModal = () => { setTaskModalOpen(false); setEditingTask(null); };
 
   const handleTaskSubmit = async (values: Partial<MaintenanceTask>) => {
     if (editingTask) {
@@ -100,28 +85,38 @@ export function SchedulePage() {
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Maintenance Schedule</h1>
+    <div className="px-4 pb-6 pt-6 md:px-8 md:pt-8">
+      {/* Header */}
+      <div className="mb-5 animate-fade-in">
+        <h1 className="font-display text-2xl font-bold text-warm-900 md:text-3xl">
+          Schedule
+        </h1>
+        {selectedHome && (
+          <p className="mt-0.5 text-sm text-warm-600">{selectedHome.name}</p>
+        )}
+      </div>
 
       {!selectedHome ? (
-        <p className="text-gray-500 text-center mt-10">
-          <Link to="/settings" className="text-brand-600 hover:text-brand-700">
-            Select a home in Settings
-          </Link>{" "}
-          to view its schedule.
-        </p>
+        <div className="mt-16 text-center">
+          <p className="text-sm text-warm-600">
+            <Link to="/settings" className="font-medium text-brand-600 hover:text-brand-700">
+              Select a home in Settings
+            </Link>{" "}
+            to view its schedule.
+          </p>
+        </div>
       ) : (
         <>
           {/* Status filter chips */}
-          <div className="flex gap-2 overflow-x-auto mb-4 pb-1">
+          <div className="-mx-4 mb-5 flex gap-2 overflow-x-auto px-4 pb-1 md:-mx-0 md:px-0">
             {STATUS_FILTERS.map((s) => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
-                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs capitalize ${
+                className={`whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-medium capitalize transition-colors duration-150 ${
                   statusFilter === s
                     ? "bg-brand-600 text-white"
-                    : "bg-gray-100 text-gray-600"
+                    : "border border-warm-200 bg-warm-100 text-warm-700 hover:bg-warm-200"
                 }`}
               >
                 {s}
@@ -130,54 +125,66 @@ export function SchedulePage() {
           </div>
 
           {loading ? (
-            <p className="text-center text-gray-400 mt-10">Loading tasks…</p>
+            <p className="mt-16 text-center text-sm text-warm-400">Loading tasks…</p>
           ) : tasks.length === 0 ? (
-            <p className="text-center text-gray-400 mt-10">
-              No tasks found. Tap + to add one or ask the assistant to generate
-              a schedule!
-            </p>
+            <div className="mt-8 rounded-2xl border border-warm-200 bg-white p-8 text-center animate-fade-in">
+              <Sparkles className="mx-auto mb-3 h-8 w-8 text-warm-300" />
+              <p className="font-medium text-warm-900">No tasks found</p>
+              <p className="mt-1 text-sm text-warm-600">
+                Tap + to add one, or ask the assistant to generate a schedule.
+              </p>
+            </div>
           ) : (
-            <div className="space-y-3">
-              {tasks.map((task) => (
+            <div className="space-y-2.5">
+              {tasks.map((task, i) => (
                 <div
                   key={task.id}
-                  className="rounded-xl bg-white border border-gray-200 p-4"
+                  className={`animate-fade-up rounded-xl border border-l-4 border-warm-200 bg-white p-4 transition-shadow duration-150 hover:shadow-sm ${
+                    PRIORITY_BORDER[task.priority] ?? "border-l-warm-200"
+                  } ${STATUS_OPACITY[task.status] ?? ""} ${
+                    i < 5 ? `stagger-${i + 1}` : "stagger-5"
+                  }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="mt-0.5 shrink-0">
-                      {PRIORITY_ICON[
-                        task.priority as keyof typeof PRIORITY_ICON
-                      ] ?? PRIORITY_ICON.medium}
-                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{task.title}</p>
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <p className="text-sm font-semibold text-warm-900">
+                          {task.title}
+                        </p>
+                        {task.is_ai_generated && (
+                          <Badge variant="ai" label="AI" />
+                        )}
+                      </div>
                       {task.description && (
-                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                        <p className="mb-2 line-clamp-2 text-xs text-warm-600">
                           {task.description}
                         </p>
                       )}
-                      <div className="flex gap-3 mt-2 text-xs text-gray-400">
-                        <span>Due: {task.due_date || "Not set"}</span>
-                        <span className="capitalize">{task.frequency}</span>
-                      </div>
-                      {task.is_ai_generated && (
-                        <span className="mt-2 inline-block rounded-full bg-purple-50 px-2 py-0.5 text-xs text-purple-600">
-                          AI Generated
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge
+                          variant={task.priority as "urgent" | "high" | "medium" | "low"}
+                        />
+                        <span className="text-xs text-warm-500">
+                          Due: {task.due_date || "Not set"}
                         </span>
-                      )}
+                        <span className="text-xs capitalize text-warm-400">
+                          {task.frequency?.replace("_", " ")}
+                        </span>
+                      </div>
                     </div>
+
                     {/* Actions */}
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex shrink-0 items-center gap-1">
                       <button
                         onClick={() => openEditTask(task)}
-                        className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                        className="rounded-lg p-1.5 text-warm-400 transition-colors hover:bg-warm-100 hover:text-warm-700"
                         title="Edit task"
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => setConfirmDeleteTask(task)}
-                        className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                        className="rounded-lg p-1.5 text-warm-400 transition-colors hover:bg-red-50 hover:text-red-500"
                         title="Delete task"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -185,7 +192,7 @@ export function SchedulePage() {
                       {task.status !== "completed" && (
                         <button
                           onClick={() => setCompletingTask(task)}
-                          className="rounded-lg p-1.5 text-gray-400 hover:bg-green-50 hover:text-green-600"
+                          className="rounded-lg p-1.5 text-warm-400 transition-colors hover:bg-sage-50 hover:text-sage-500"
                           title="Mark complete"
                         >
                           <CheckCircle2 className="h-5 w-5" />
@@ -204,7 +211,7 @@ export function SchedulePage() {
       {selectedHome && (
         <button
           onClick={openCreateTask}
-          className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 shadow-lg hover:bg-brand-700 text-white"
+          className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg transition-all duration-150 hover:scale-105 hover:bg-brand-700 hover:shadow-xl md:bottom-8 md:right-8"
           title="Add task"
         >
           <Plus className="h-6 w-6" />
@@ -229,7 +236,6 @@ export function SchedulePage() {
         )}
       </Modal>
 
-      {/* Delete confirmation */}
       <ConfirmDialog
         isOpen={!!confirmDeleteTask}
         onClose={() => setConfirmDeleteTask(null)}
@@ -239,7 +245,6 @@ export function SchedulePage() {
         isLoading={deletingTask}
       />
 
-      {/* Complete with notes */}
       <CompleteTaskModal
         isOpen={!!completingTask}
         onClose={() => setCompletingTask(null)}

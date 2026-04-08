@@ -2,13 +2,15 @@ import { useEffect } from "react";
 import { useHomeStore } from "../stores/homeStore";
 import { useMaintenanceStore } from "../stores/maintenanceStore";
 import { useAuth } from "../providers/AuthProvider";
+import { Badge } from "../components/ui";
 import {
   Home,
-  AlertTriangle,
   CheckCircle2,
   Clock,
+  AlertTriangle,
   Plus,
   ChevronRight,
+  Sparkles,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -22,88 +24,138 @@ export function DashboardPage() {
     fetchUpcoming(14);
   }, [fetchHomes, fetchUpcoming]);
 
-  const urgentTasks = upcomingTasks.filter((t) => t.priority === "urgent" || t.priority === "high");
+  const urgentTasks = upcomingTasks.filter(
+    (t) => t.priority === "urgent" || t.priority === "high",
+  );
   const pendingCount = upcomingTasks.filter((t) => t.status === "pending").length;
+  const firstName = user?.email?.split("@")[0] ?? "there";
 
   return (
-    <div className="p-4">
+    <div className="px-4 pb-6 pt-8 md:px-8 md:pt-10">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Welcome{user?.email ? `, ${user.email.split("@")[0]}` : ""}
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          {selectedHome ? selectedHome.name : "No home selected"}
+      <div className="mb-7 animate-fade-in">
+        <p className="mb-0.5 text-xs font-semibold uppercase tracking-widest text-warm-600">
+          Good day,
         </p>
+        <h1 className="font-display text-3xl font-bold text-warm-900 md:text-4xl">
+          {firstName}
+        </h1>
+        {selectedHome && (
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-warm-600">
+            <Home className="h-3.5 w-3.5" />
+            {selectedHome.name}
+          </p>
+        )}
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="rounded-xl bg-white p-3 border border-gray-200 text-center">
-          <Home className="mx-auto h-5 w-5 text-brand-600 mb-1" />
-          <p className="text-xl font-bold">{homes.length}</p>
-          <p className="text-xs text-gray-500">Homes</p>
+      {/* Editorial Stat Cards */}
+      <div className="mb-7 grid grid-cols-3 gap-3">
+        <div className="animate-fade-up stagger-1 rounded-2xl border border-warm-200 bg-white p-4">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-warm-500">
+            Homes
+          </p>
+          <p className="font-display text-5xl font-bold leading-none text-warm-900">
+            {homes.length}
+          </p>
+          <div className="mt-2 flex items-center gap-1">
+            <Home className="h-3.5 w-3.5 text-warm-400" />
+            <span className="text-xs text-warm-400">registered</span>
+          </div>
         </div>
-        <div className="rounded-xl bg-white p-3 border border-gray-200 text-center">
-          <Clock className="mx-auto h-5 w-5 text-amber-500 mb-1" />
-          <p className="text-xl font-bold">{pendingCount}</p>
-          <p className="text-xs text-gray-500">Pending</p>
+
+        <div className="animate-fade-up stagger-2 rounded-2xl border border-warm-200 bg-white p-4">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-warm-500">
+            Pending
+          </p>
+          <p className="font-display text-5xl font-bold leading-none text-warm-900">
+            {pendingCount}
+          </p>
+          <div className="mt-2 flex items-center gap-1">
+            <Clock className="h-3.5 w-3.5 text-warm-400" />
+            <span className="text-xs text-warm-400">tasks</span>
+          </div>
         </div>
-        <div className="rounded-xl bg-white p-3 border border-gray-200 text-center">
-          <AlertTriangle className="mx-auto h-5 w-5 text-red-500 mb-1" />
-          <p className="text-xl font-bold">{urgentTasks.length}</p>
-          <p className="text-xs text-gray-500">Urgent</p>
+
+        <div
+          className={`animate-fade-up stagger-3 rounded-2xl border p-4 ${
+            urgentTasks.length > 0
+              ? "border-gold-200 bg-gold-50"
+              : "border-warm-200 bg-white"
+          }`}
+        >
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-warm-500">
+            Urgent
+          </p>
+          <p
+            className={`font-display text-5xl font-bold leading-none ${
+              urgentTasks.length > 0 ? "text-gold-500" : "text-warm-900"
+            }`}
+          >
+            {urgentTasks.length}
+          </p>
+          <div className="mt-2 flex items-center gap-1">
+            <AlertTriangle className="h-3.5 w-3.5 text-warm-400" />
+            <span className="text-xs text-warm-400">high priority</span>
+          </div>
         </div>
       </div>
 
       {/* Upcoming Tasks */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold">Upcoming Tasks</h2>
+      <div className="mb-7">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-display text-xl font-semibold text-warm-900">
+            Upcoming
+          </h2>
           <Link
             to="/schedule"
-            className="text-sm text-brand-600 hover:text-brand-700"
+            className="text-sm font-medium text-brand-600 transition-colors hover:text-brand-700"
           >
             View all
           </Link>
         </div>
 
         {upcomingTasks.length === 0 ? (
-          <div className="rounded-xl bg-white border border-gray-200 p-6 text-center">
-            <CheckCircle2 className="mx-auto h-8 w-8 text-green-500 mb-2" />
-            <p className="text-sm text-gray-600">All caught up! No upcoming tasks.</p>
+          <div className="animate-fade-up stagger-4 rounded-2xl border border-warm-200 bg-white p-6 text-center">
+            <CheckCircle2 className="mx-auto mb-2 h-8 w-8 text-sage-400" />
+            <p className="text-sm font-medium text-warm-900">All caught up!</p>
+            <p className="mt-0.5 text-xs text-warm-600">No upcoming tasks in the next 14 days.</p>
             <Link
               to="/assistant"
-              className="mt-3 inline-block text-sm text-brand-600 hover:text-brand-700"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 transition-colors hover:text-brand-700"
             >
-              Ask the assistant to generate a schedule
+              <Sparkles className="h-3.5 w-3.5" />
+              Generate a schedule
             </Link>
           </div>
         ) : (
           <div className="space-y-2">
-            {upcomingTasks.slice(0, 5).map((task) => (
+            {upcomingTasks.slice(0, 5).map((task, i) => (
               <div
                 key={task.id}
-                className="flex items-center justify-between rounded-xl bg-white border border-gray-200 p-3"
+                className={`animate-fade-up flex items-center gap-3 rounded-xl border border-warm-200 bg-white p-3 transition-all duration-150 hover:border-brand-200 hover:shadow-sm ${
+                  i === 0 ? "stagger-1"
+                  : i === 1 ? "stagger-2"
+                  : i === 2 ? "stagger-3"
+                  : i === 3 ? "stagger-4"
+                  : "stagger-5"
+                }`}
               >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{task.title}</p>
-                  <p className="text-xs text-gray-500">
-                    Due: {task.due_date || "Not set"} &middot;{" "}
-                    <span
-                      className={
-                        task.priority === "urgent"
-                          ? "text-red-500"
-                          : task.priority === "high"
-                            ? "text-amber-500"
-                            : "text-gray-500"
-                      }
-                    >
-                      {task.priority}
-                    </span>
+                <Badge
+                  variant={
+                    task.priority === "urgent" || task.priority === "high"
+                      ? task.priority
+                      : "medium"
+                  }
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-warm-900">
+                    {task.title}
+                  </p>
+                  <p className="mt-0.5 text-xs text-warm-500">
+                    Due: {task.due_date || "Not set"}
                   </p>
                 </div>
-                <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <ChevronRight className="h-4 w-4 shrink-0 text-warm-400" />
               </div>
             ))}
           </div>
@@ -112,33 +164,35 @@ export function DashboardPage() {
 
       {/* Quick Actions */}
       <div>
-        <h2 className="text-lg font-semibold mb-3">Quick Actions</h2>
+        <h2 className="font-display mb-3 text-xl font-semibold text-warm-900">
+          Quick Actions
+        </h2>
         <div className="grid grid-cols-2 gap-3">
           <Link
-            to="/settings"
-            className="flex items-center gap-3 rounded-xl bg-brand-600 p-4 text-white"
+            to="/homes"
+            className="flex items-center gap-3 rounded-xl bg-brand-600 p-4 text-white transition-colors hover:bg-brand-700"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-5 w-5 shrink-0" />
             <div>
-              <p className="text-sm font-medium">Add Home</p>
-              <p className="text-xs opacity-80">Set up a new home profile</p>
+              <p className="text-sm font-semibold">Add Home</p>
+              <p className="text-xs opacity-75">Set up a home profile</p>
             </div>
           </Link>
           <Link
-            to="/settings"
-            className="flex items-center gap-3 rounded-xl bg-white border border-gray-200 p-4"
+            to="/homes"
+            className="flex items-center gap-3 rounded-xl border border-warm-200 bg-warm-50 p-4 transition-colors hover:bg-warm-100"
           >
-            <Plus className="h-5 w-5 text-brand-600" />
+            <Plus className="h-5 w-5 shrink-0 text-brand-600" />
             <div>
-              <p className="text-sm font-medium">Upload Manual</p>
-              <p className="text-xs text-gray-500">Process a document</p>
+              <p className="text-sm font-semibold text-warm-900">Upload Manual</p>
+              <p className="text-xs text-warm-500">Process a document</p>
             </div>
           </Link>
         </div>
       </div>
 
       {homesLoading && (
-        <div className="mt-4 text-center text-sm text-gray-400">Loading...</div>
+        <div className="mt-4 text-center text-sm text-warm-400">Loading…</div>
       )}
     </div>
   );

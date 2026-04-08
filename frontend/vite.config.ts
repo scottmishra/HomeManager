@@ -12,8 +12,8 @@ export default defineConfig({
         name: "HomeManager",
         short_name: "HomeManager",
         description: "AI-powered home maintenance management",
-        theme_color: "#2563eb",
-        background_color: "#ffffff",
+        theme_color: "#c4622d",
+        background_color: "#f7f4ef",
         display: "standalone",
         icons: [
           {

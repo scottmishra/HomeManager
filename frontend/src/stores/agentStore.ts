@@ -69,7 +69,7 @@ export const useAgentStore = create<AgentState>((set) => ({
   messages: [],
   isProcessing: false,
 
-  sendMessage: async (message, action = "chat", homeId) => {
+  sendMessage: async (message, action = "chat", _homeId) => {
     const userMsg: AgentMessage = {
       id: `msg-${++msgCounter}`,
       role: "user",

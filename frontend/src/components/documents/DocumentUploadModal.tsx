@@ -71,15 +71,15 @@ export function DocumentUploadModal({
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Upload Document">
       <div className="space-y-4">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-warm-600">
           Upload a manual, warranty, or instruction document. It will be
           processed for AI-powered search.
         </p>
 
         {successMessage ? (
-          <div className="rounded-xl bg-green-50 border border-green-200 p-4 flex items-start gap-3">
-            <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
-            <p className="text-sm text-green-800">{successMessage}</p>
+          <div className="flex items-start gap-3 rounded-xl border border-sage-200 bg-sage-50 p-4">
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-sage-400" />
+            <p className="text-sm text-sage-600">{successMessage}</p>
           </div>
         ) : (
           <>
@@ -88,26 +88,26 @@ export function DocumentUploadModal({
               onClick={() => fileInputRef.current?.click()}
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
-              className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-gray-300 p-8 text-center cursor-pointer hover:border-brand-400 hover:bg-brand-50 transition-colors"
+              className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-warm-300 p-8 text-center transition-colors hover:border-brand-400 hover:bg-brand-50"
             >
               {file ? (
                 <>
                   <FileText className="h-8 w-8 text-brand-600" />
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="text-sm font-medium text-warm-700">
                     {file.name}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-warm-400">
                     {(file.size / 1024).toFixed(1)} KB — click to change
                   </p>
                 </>
               ) : (
                 <>
-                  <Upload className="h-8 w-8 text-gray-400" />
+                  <Upload className="h-8 w-8 text-warm-400" />
                   <div>
-                    <p className="text-sm font-medium text-gray-700">
+                    <p className="text-sm font-medium text-warm-700">
                       Click or drag a file here
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="mt-1 text-xs text-warm-400">
                       PDF, TXT, DOC, DOCX
                     </p>
                   </div>
@@ -130,7 +130,7 @@ export function DocumentUploadModal({
           <button
             onClick={handleClose}
             disabled={uploading}
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="flex-1 rounded-lg border border-warm-200 px-4 py-2.5 text-sm font-medium text-warm-700 transition-colors hover:bg-warm-50 disabled:opacity-50"
           >
             {successMessage ? "Done" : "Cancel"}
           </button>
