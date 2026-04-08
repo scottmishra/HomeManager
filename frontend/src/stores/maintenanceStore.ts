@@ -25,6 +25,7 @@ interface MaintenanceState {
   fetchTasks: (homeId: string, status?: string) => Promise<void>;
   fetchUpcoming: (days?: number) => Promise<void>;
   createTask: (data: Partial<MaintenanceTask>) => Promise<MaintenanceTask>;
+  updateTask: (taskId: string, data: Partial<MaintenanceTask>) => Promise<void>;
   completeTask: (taskId: string, notes?: string) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
 }
@@ -63,6 +64,19 @@ export const useMaintenanceStore = create<MaintenanceState>((set) => ({
     const task = await api.post<MaintenanceTask>("/maintenance/tasks", data);
     set((s) => ({ tasks: [...s.tasks, task] }));
     return task;
+  },
+
+  updateTask: async (taskId, data) => {
+    const updated = await api.patch<MaintenanceTask>(
+      `/maintenance/tasks/${taskId}`,
+      data,
+    );
+    set((s) => ({
+      tasks: s.tasks.map((t) => (t.id === taskId ? updated : t)),
+      upcomingTasks: s.upcomingTasks.map((t) =>
+        t.id === taskId ? updated : t,
+      ),
+    }));
   },
 
   completeTask: async (taskId, notes) => {

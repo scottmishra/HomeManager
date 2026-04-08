@@ -115,7 +115,7 @@ export function DashboardPage() {
         <h2 className="text-lg font-semibold mb-3">Quick Actions</h2>
         <div className="grid grid-cols-2 gap-3">
           <Link
-            to="/assistant"
+            to="/settings"
             className="flex items-center gap-3 rounded-xl bg-brand-600 p-4 text-white"
           >
             <Plus className="h-5 w-5" />
@@ -125,7 +125,7 @@ export function DashboardPage() {
             </div>
           </Link>
           <Link
-            to="/assistant"
+            to="/settings"
             className="flex items-center gap-3 rounded-xl bg-white border border-gray-200 p-4"
           >
             <Plus className="h-5 w-5 text-brand-600" />
