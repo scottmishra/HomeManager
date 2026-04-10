@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     # Anthropic
     anthropic_api_key: str = ""
 
+    # Brave Search
+    brave_search_api_key: str = ""
+    brave_search_results_count: int = 8
+
     # App
     app_env: str = "development"
     app_host: str = "0.0.0.0"

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.core.config import settings
-from backend.api.routes import homes, appliances, maintenance, agent, prototype
+from backend.api.routes import homes, appliances, maintenance, agent, prototype, manuals
 
 app = FastAPI(
     title="HomeManager API",
@@ -25,6 +25,7 @@ app.include_router(appliances.router, prefix="/api/v1")
 app.include_router(maintenance.router, prefix="/api/v1")
 app.include_router(agent.router, prefix="/api/v1")
 app.include_router(prototype.router, prefix="/api/v1")
+app.include_router(manuals.router, prefix="/api/v1")
 
 
 @app.get("/api/health")

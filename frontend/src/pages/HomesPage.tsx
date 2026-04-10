@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Wrench,
   FileUp,
+  Search,
 } from "lucide-react";
 import { useHomeStore, type Home as HomeModel } from "../stores/homeStore";
 import { useApplianceStore, type Appliance } from "../stores/applianceStore";
@@ -21,6 +22,7 @@ import { Modal, ConfirmDialog } from "../components/ui";
 import { HomeForm } from "../components/homes/HomeForm";
 import { ApplianceForm } from "../components/appliances/ApplianceForm";
 import { DocumentUploadModal } from "../components/documents/DocumentUploadModal";
+import { ManualSearchModal } from "../components/manuals/ManualSearchModal";
 
 const CATEGORY_ICON: Record<string, React.ReactNode> = {
   hvac:       <Wind className="h-4 w-4 text-blue-500" />,
@@ -54,6 +56,8 @@ export function HomesPage() {
   const [applianceFormSubmitting, setApplianceFormSubmitting] = useState(false);
 
   const [docUploadOpen, setDocUploadOpen] = useState(false);
+  const [manualSearchOpen, setManualSearchOpen] = useState(false);
+  const [manualSearchAppliance, setManualSearchAppliance] = useState<Appliance | null>(null);
 
   useEffect(() => {
     if (selectedHome) {
@@ -198,6 +202,13 @@ export function HomesPage() {
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
                     <button
+                      onClick={() => { setManualSearchAppliance(a); setManualSearchOpen(true); }}
+                      className="rounded-lg p-1.5 text-warm-400 transition-colors hover:bg-brand-50 hover:text-brand-600"
+                      title="Find user manual"
+                    >
+                      <Search className="h-4 w-4" />
+                    </button>
+                    <button
                       onClick={() => openEditAppliance(a)}
                       className="rounded-lg p-1.5 text-warm-400 transition-colors hover:bg-warm-100 hover:text-warm-700"
                       title="Edit appliance"
@@ -302,6 +313,16 @@ export function HomesPage() {
       {selectedHome && (
         <DocumentUploadModal homeId={selectedHome.id} isOpen={docUploadOpen} onClose={() => setDocUploadOpen(false)} />
       )}
+
+      <ManualSearchModal
+        appliance={manualSearchAppliance}
+        isOpen={manualSearchOpen}
+        onClose={() => setManualSearchOpen(false)}
+        onUploadInstead={() => {
+          setManualSearchOpen(false);
+          setDocUploadOpen(true);
+        }}
+      />
     </div>
   );
 }
