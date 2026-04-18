@@ -1,0 +1,13 @@
+.git/
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+frontend/node_modules/
+frontend/dist/
+.env
+.env.production
+.hmcli_config.json
+ansible/
+tests/
+*.md

@@ -1,0 +1,6 @@
+---
+- name: Deploy HomeManager to raspberrypi53
+  hosts: raspberrypi53
+  become: yes
+  roles:
+    - homemanager

@@ -1,0 +1,7 @@
+app_name: homemanager
+app_domain: homemanager.teleport.mishrahome.boo
+teleport_cluster: teleport.mishrahome.boo
+app_port: 8080
+deploy_dir: /home/scott/homemanager
+app_env: production
+repo_url: https://github.com/scottmishra/HomeManager.git

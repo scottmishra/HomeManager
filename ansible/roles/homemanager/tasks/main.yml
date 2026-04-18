@@ -1,0 +1,52 @@
+---
+- name: Template .env.production
+  template:
+    src: env.production.j2
+    dest: "{{ deploy_dir }}/.env.production"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0600"
+
+- name: Build and start containers
+  community.docker.docker_compose_v2:
+    project_src: "{{ deploy_dir }}"
+    build: always
+    state: present
+  become_user: "{{ ansible_user }}"
+  environment:
+    VITE_SUPABASE_URL: "{{ supabase_url }}"
+    VITE_SUPABASE_ANON_KEY: "{{ supabase_anon_key }}"
+
+- name: Wait for health check
+  uri:
+    url: "http://localhost:{{ app_port }}/api/health"
+    return_content: yes
+    status_code: 200
+  register: health
+  until: health.status == 200
+  retries: 30
+  delay: 5
+
+- name: Check if Teleport is installed
+  stat:
+    path: /etc/teleport.yaml
+  register: teleport_config
+
+- name: Add app_service to Teleport config
+  blockinfile:
+    path: /etc/teleport.yaml
+    marker: "# {mark} ANSIBLE MANAGED - homemanager app"
+    block: |
+      app_service:
+        enabled: yes
+        apps:
+          - name: "{{ app_name }}"
+            uri: "http://localhost:{{ app_port }}"
+            labels:
+              env: "{{ app_env }}"
+  when: teleport_config.stat.exists
+  notify: restart teleport
+
+- name: Print access URL
+  debug:
+    msg: "HomeManager is available at https://{{ app_domain }}"
