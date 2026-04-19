@@ -46,6 +46,35 @@
             labels:
               env: "{{ app_env }}"
   when: teleport_config.stat.exists
+  register: app_block
+  notify: restart teleport
+
+# The agent's original join token only covered the Node role and has likely
+# expired. When the app_service block is added, Teleport needs to re-join
+# with a token authorised for both node and app roles. deploy.sh fetches a
+# fresh token from the hub and passes it in as `teleport_token`.
+- name: Update Teleport join token
+  replace:
+    path: /etc/teleport.yaml
+    regexp: '^(\s*token_name:\s*).*$'
+    replace: '\g<1>{{ teleport_token }}'
+  when:
+    - teleport_config.stat.exists
+    - teleport_token is defined
+    - teleport_token | length > 0
+  register: token_update
+  notify: restart teleport
+
+# Clearing host_uuid forces Teleport to re-register on next start,
+# picking up the new role set (node + app) via the fresh token.
+- name: Clear stale Teleport host identity so it re-joins with new roles
+  file:
+    path: /var/lib/teleport/host_uuid
+    state: absent
+  when:
+    - teleport_config.stat.exists
+    - token_update is defined
+    - token_update.changed or app_block.changed
   notify: restart teleport
 
 - name: Print access URL

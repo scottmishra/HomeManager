@@ -26,10 +26,12 @@ set -euo pipefail
 # ============================================================
 
 PI_HOST="raspberrypi53"
+HUB_HOST="raspberrypi51"
 PI_USER="scott"
 REPO_URL="scottmishra/HomeManager"
 DEPLOY_DIR="/home/${PI_USER}/homemanager"
 BRANCH="teleport-test3"
+TELEPORT_CONTAINER="teleport-teleport-1"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -119,7 +121,7 @@ echo "========================================="
 echo ""
 
 # --- Step 1: Collect secrets ---
-step "Step 1/5: Collecting secrets..."
+step "Step 1/6: Collecting secrets..."
 echo ""
 
 prompt_secret SUPABASE_URL             "SUPABASE_URL"
@@ -131,7 +133,7 @@ prompt_secret BRAVE_SEARCH_API_KEY     "BRAVE_SEARCH_API_KEY"
 echo ""
 
 # --- Step 2: Verify SSH connectivity ---
-step "Step 2/5: Verifying SSH to ${PI_HOST}..."
+step "Step 2/6: Verifying SSH to ${PI_HOST}..."
 
 if ! ssh_pi "echo ok" &>/dev/null; then
   error "Cannot SSH to ${PI_HOST}. Check your SSH key and network."
@@ -140,7 +142,7 @@ fi
 log "SSH connection verified"
 
 # --- Step 3: Ensure prerequisites on Pi ---
-step "Step 3/5: Ensuring prerequisites on Pi..."
+step "Step 3/6: Ensuring prerequisites on Pi..."
 
 ssh_pi "bash -s" <<'PREREQS'
 set -euo pipefail
@@ -200,7 +202,7 @@ echo "[+] Prerequisites ready"
 PREREQS
 
 # --- Step 4: Clone/pull the repo ---
-step "Step 4/5: Pulling latest code (branch: ${BRANCH})..."
+step "Step 4/6: Pulling latest code (branch: ${BRANCH})..."
 
 ssh_pi "bash -s" <<GITPULL
 set -euo pipefail
@@ -217,8 +219,29 @@ else
 fi
 GITPULL
 
-# --- Step 5: Run Ansible playbook on the Pi ---
-step "Step 5/5: Running Ansible playbook on Pi..."
+# --- Step 5: Get a fresh Teleport provision token from the hub ---
+step "Step 5/6: Requesting Teleport join token from ${HUB_HOST}..."
+
+TELEPORT_TOKEN=""
+TOKEN_RAW="$(
+  ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new \
+    "${PI_USER}@${HUB_HOST}" \
+    "sudo docker exec ${TELEPORT_CONTAINER} tctl tokens add --type=node,app --ttl=1h" 2>&1 || true
+)"
+
+# tctl output includes a line like "The invite token: <32-hex>"; extract it.
+TELEPORT_TOKEN="$(echo "$TOKEN_RAW" | grep -oE '[a-f0-9]{32}' | head -n1 || true)"
+
+if [[ -z "$TELEPORT_TOKEN" ]]; then
+  warn "Could not obtain Teleport token from ${HUB_HOST}"
+  warn "App service registration will be skipped this run. Hub output was:"
+  echo "$TOKEN_RAW" | head -5
+else
+  log "Got Teleport token: ${TELEPORT_TOKEN:0:8}... (expires in 1h)"
+fi
+
+# --- Step 6: Run Ansible playbook on the Pi ---
+step "Step 6/6: Running Ansible playbook on Pi..."
 
 # Pass secrets via extra-vars to ansible-playbook over SSH.
 # The playbook runs locally on the Pi (--connection=local).
@@ -235,6 +258,7 @@ sudo ansible-playbook deploy.yml \
   -e "supabase_service_role_key=${SUPABASE_SERVICE_ROLE_KEY}" \
   -e "anthropic_api_key=${ANTHROPIC_API_KEY}" \
   -e "brave_search_api_key=${BRAVE_SEARCH_API_KEY}" \
+  -e "teleport_token=${TELEPORT_TOKEN}" \
   ${ANSIBLE_EXTRA_ARGS[@]+"${ANSIBLE_EXTRA_ARGS[@]}"}
 ANSIBLE_RUN
 
