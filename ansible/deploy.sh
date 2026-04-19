@@ -31,7 +31,7 @@ PI_USER="scott"
 REPO_URL="scottmishra/HomeManager"
 DEPLOY_DIR="/home/${PI_USER}/homemanager"
 BRANCH="teleport-test3"
-TELEPORT_CONTAINER="teleport-teleport-1"
+TELEPORT_CONTAINER="teleport"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
