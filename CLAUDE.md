@@ -111,6 +111,83 @@ open http://localhost:8000/docs         # Swagger UI — all endpoints, try them
 
 ---
 
+## Production Deployment (Teleport)
+
+HomeManager runs on `raspberrypi53` behind the Teleport cluster at `teleport.mishrahome.boo`, accessible at `https://homemanager.teleport.mishrahome.boo`.
+
+**Auth model — two layers:**
+1. **Teleport** (gateway): All unauthenticated requests redirected to Teleport login. Injects `Teleport-Jwt-Assertion` header into every proxied request.
+2. **Supabase** (app-level): Existing login page and Supabase Auth flow for user identity and DB operations.
+
+### Infrastructure
+
+| Component | Host | Details |
+|-----------|------|---------|
+| Teleport hub | `raspberrypi51` | Runs `teleport` container via docker-compose |
+| App host | `raspberrypi53` | Runs HomeManager containers + Teleport agent |
+| App URL | `homemanager.teleport.mishrahome.boo` | Proxied through Teleport `app_service` |
+
+### Deployment Script
+
+```bash
+# From project root on your laptop — reads secrets from .env automatically
+bash ansible/deploy.sh
+
+# Flags
+bash ansible/deploy.sh --check           # Ansible dry-run (no changes made)
+bash ansible/deploy.sh --branch feat-x   # Deploy a specific branch
+```
+
+The script (`ansible/deploy.sh`) does the following in order:
+1. Loads secrets from `.env` (project root), prompts for any missing ones
+2. Verifies SSH connectivity to `raspberrypi53`
+3. Ensures prerequisites on Pi (ansible, git, gh, docker)
+4. `git pull` the target branch into `/home/scott/homemanager`
+5. Fetches a fresh Teleport join token from `raspberrypi51` (node+app roles, 1h TTL)
+6. Runs `ansible-playbook deploy.yml` locally on the Pi, passing all secrets as extra-vars
+
+### Ansible Playbook
+
+`ansible/deploy.yml` → role `homemanager` (`ansible/roles/homemanager/`):
+
+| Task | Notes |
+|------|-------|
+| Template `.env.production` | Written to deploy dir, mode 0600 |
+| `docker compose up -d --build` | Rebuilds images, restarts only changed containers |
+| Health check | Polls `http://localhost:8080/api/health` up to 30×5s |
+| `blockinfile` app_service | Adds `app_service` block to `/etc/teleport.yaml` (idempotent via markers) |
+| Swap join token | Only runs when app_service block was just added (`app_block.changed`) |
+| Clear `host_uuid` | Only when re-registering; forces Teleport to re-join with node+app roles |
+| Restart Teleport | Handler, fires only if config changed |
+
+**Idempotent**: Safe to run on every code push. Teleport is only restarted on the first deploy (when the app_service block is added). Subsequent runs rebuild Docker images and skip all Teleport steps.
+
+### Container Architecture
+
+```
+Teleport (port 443)
+    └── proxies → nginx (port 8080)
+                      ├── /        → React SPA (static, built at image build time)
+                      └── /api/    → FastAPI backend (port 8000)
+```
+
+- `Dockerfile.backend` — python:3.11-slim + uv, runs uvicorn with `--proxy-headers`
+- `Dockerfile.frontend` — node:20-slim build stage → nginx:alpine serve stage
+- `nginx.conf` — SPA fallback (`try_files $uri /index.html`) + `/api/` proxy
+- `docker-compose.yml` — `backend` + `nginx` services, both `restart: unless-stopped`
+
+### Teleport Re-registration
+
+If you ever need to force Teleport to re-register (e.g., after a cluster reset):
+```bash
+# On raspberrypi53
+sudo rm /var/lib/teleport/host_uuid
+sudo systemctl restart teleport
+```
+Then run `deploy.sh` to inject a fresh token first.
+
+---
+
 ## CLI Testing Tool
 
 **`cli.py`** is a Rich-based interactive terminal tool for end-to-end API testing without needing a browser. Always use this to validate the backend.

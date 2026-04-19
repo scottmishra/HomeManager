@@ -62,6 +62,7 @@
     - teleport_config.stat.exists
     - teleport_token is defined
     - teleport_token | length > 0
+    - app_block.changed
   register: token_update
   notify: restart teleport
 
@@ -73,8 +74,7 @@
     state: absent
   when:
     - teleport_config.stat.exists
-    - token_update is defined
-    - token_update.changed or app_block.changed
+    - app_block.changed
   notify: restart teleport
 
 - name: Print access URL
