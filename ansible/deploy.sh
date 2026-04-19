@@ -26,9 +26,9 @@ set -euo pipefail
 
 PI_HOST="raspberrypi53"
 PI_USER="scott"
-REPO_URL="https://github.com/scottmishra/HomeManager.git"
+REPO_URL="scottmishra/HomeManager"
 DEPLOY_DIR="/home/${PI_USER}/homemanager"
-BRANCH="main"
+BRANCH="teleport-test3"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -159,14 +159,6 @@ if ! groups | grep -q docker; then
   echo "[!] Added $USER to docker group (may need re-login for non-ansible commands)"
 else
   echo "[+] $USER already in docker group"
-fi
-
-# Install community.docker ansible collection if missing
-if ! ansible-galaxy collection list 2>/dev/null | grep -q community.docker; then
-  echo "[+] Installing ansible community.docker collection..."
-  ansible-galaxy collection install community.docker >/dev/null 2>&1
-else
-  echo "[+] community.docker collection: already installed"
 fi
 
 echo "[+] Prerequisites ready"

@@ -8,10 +8,10 @@
     mode: "0600"
 
 - name: Build and start containers
-  community.docker.docker_compose_v2:
-    project_src: "{{ deploy_dir }}"
-    build: always
-    state: present
+  shell: |
+    docker compose up -d --build
+  args:
+    chdir: "{{ deploy_dir }}"
   become_user: "{{ ansible_user }}"
   environment:
     VITE_SUPABASE_URL: "{{ supabase_url }}"
