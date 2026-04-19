@@ -225,6 +225,16 @@ GITPULL
 # --- Step 5: Get a fresh Teleport provision token from the hub ---
 step "Step 5/6: Requesting Teleport join token from ${HUB_HOST}..."
 
+# When forcing re-registration, remove the app from the cluster registry first
+# so it re-joins with a completely clean slate.
+if [[ "$FORCE_TELEPORT" == "true" ]]; then
+  warn "--force-teleport: removing existing app registration from cluster..."
+  ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new \
+    "${PI_USER}@${HUB_HOST}" \
+    "sudo docker exec ${TELEPORT_CONTAINER} tctl rm app/homemanager" 2>&1 || true
+  log "App removed from cluster (or was not registered)"
+fi
+
 TELEPORT_TOKEN=""
 TOKEN_RAW="$(
   ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new \

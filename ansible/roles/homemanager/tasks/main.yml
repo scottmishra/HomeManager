@@ -33,6 +33,18 @@
     path: /etc/teleport.yaml
   register: teleport_config
 
+# --force-teleport: strip the existing app_service block so the add task
+# below sees it as a new insertion (app_block.changed=True), which naturally
+# triggers the token refresh, host_uuid clear, and restart handler.
+- name: Remove existing app_service block (force re-registration)
+  blockinfile:
+    path: /etc/teleport.yaml
+    marker: "# {mark} ANSIBLE MANAGED - homemanager app"
+    state: absent
+  when:
+    - teleport_config.stat.exists
+    - force_teleport | default(false) | bool
+
 - name: Add app_service to Teleport config
   blockinfile:
     path: /etc/teleport.yaml
@@ -51,10 +63,9 @@
   notify: restart teleport
 
 # The agent's original join token only covered the Node role and has likely
-# expired. When the app_service block is added (or --force-teleport is used),
-# Teleport needs to re-join with a token authorised for both node and app
-# roles. deploy.sh fetches a fresh token from the hub and passes it in as
-# `teleport_token`. Pass --force-teleport to redeploy without a code change.
+# expired. When the app_service block is added, Teleport needs to re-join
+# with a token authorised for both node and app roles. deploy.sh fetches a
+# fresh token from the hub and passes it in as `teleport_token`.
 - name: Update Teleport join token
   replace:
     path: /etc/teleport.yaml
@@ -64,7 +75,7 @@
     - teleport_config.stat.exists
     - teleport_token is defined
     - teleport_token | length > 0
-    - app_block.changed or (force_teleport | default(false) | bool)
+    - app_block.changed
   register: token_update
   notify: restart teleport
 
@@ -76,7 +87,7 @@
     state: absent
   when:
     - teleport_config.stat.exists
-    - app_block.changed or (force_teleport | default(false) | bool)
+    - app_block.changed
   notify: restart teleport
 
 - name: Print access URL
