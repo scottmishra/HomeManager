@@ -82,7 +82,7 @@ ANTHROPIC_API_KEY=sk-ant-...          # Required for CrewAI agent calls
 APP_ENV=development
 APP_HOST=0.0.0.0
 APP_PORT=8000
-FRONTEND_URL=http://localhost:5173
+ALLOWED_ORIGINS=http://localhost:5173
 ```
 
 **`frontend/.env`**:
@@ -377,7 +377,7 @@ python cli.py
 - Embedding generation falls back to a hash-based stub in dev if Supabase's embedding RPC is not set up — search results will be degraded but won't error
 
 ### Frontend can't reach backend
-- CORS: `FRONTEND_URL` in `.env` must match the exact origin the frontend is served from (default `http://localhost:5173`)
+- CORS: `ALLOWED_ORIGINS` in `.env` is a comma-separated list of allowed origins (default `http://localhost:5173`)
 - The backend must be running before the frontend makes any API calls
 
 ### Checking what the agent actually did
