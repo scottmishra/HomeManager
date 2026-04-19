@@ -16,6 +16,7 @@ set -euo pipefail
 #   ./deploy.sh --env-file path/to/.env   # load secrets from a specific file
 #   ./deploy.sh --check                   # Ansible dry-run
 #   ./deploy.sh --branch feature-x        # deploy a specific branch
+#   ./deploy.sh --force-teleport          # force Teleport re-registration even if config unchanged
 #
 # Alternatively, skip prompts by exporting env vars:
 #   export SUPABASE_URL=...
@@ -67,13 +68,15 @@ trap on_exit EXIT
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${SCRIPT_DIR}/../.env"   # default: project-root .env
 ANSIBLE_EXTRA_ARGS=()
+FORCE_TELEPORT=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --branch)   BRANCH="$2"; shift 2 ;;
-    --env-file) ENV_FILE="$2"; shift 2 ;;
-    --check)    ANSIBLE_EXTRA_ARGS+=("--check"); shift ;;
-    *)          ANSIBLE_EXTRA_ARGS+=("$1"); shift ;;
+    --branch)         BRANCH="$2"; shift 2 ;;
+    --env-file)       ENV_FILE="$2"; shift 2 ;;
+    --check)          ANSIBLE_EXTRA_ARGS+=("--check"); shift ;;
+    --force-teleport) FORCE_TELEPORT=true; shift ;;
+    *)                ANSIBLE_EXTRA_ARGS+=("$1"); shift ;;
   esac
 done
 
@@ -259,6 +262,7 @@ sudo ansible-playbook deploy.yml \
   -e "anthropic_api_key=${ANTHROPIC_API_KEY}" \
   -e "brave_search_api_key=${BRAVE_SEARCH_API_KEY}" \
   -e "teleport_token=${TELEPORT_TOKEN}" \
+  -e "force_teleport=${FORCE_TELEPORT}" \
   ${ANSIBLE_EXTRA_ARGS[@]+"${ANSIBLE_EXTRA_ARGS[@]}"}
 ANSIBLE_RUN
 

@@ -51,9 +51,10 @@
   notify: restart teleport
 
 # The agent's original join token only covered the Node role and has likely
-# expired. When the app_service block is added, Teleport needs to re-join
-# with a token authorised for both node and app roles. deploy.sh fetches a
-# fresh token from the hub and passes it in as `teleport_token`.
+# expired. When the app_service block is added (or --force-teleport is used),
+# Teleport needs to re-join with a token authorised for both node and app
+# roles. deploy.sh fetches a fresh token from the hub and passes it in as
+# `teleport_token`. Pass --force-teleport to redeploy without a code change.
 - name: Update Teleport join token
   replace:
     path: /etc/teleport.yaml
@@ -63,7 +64,7 @@
     - teleport_config.stat.exists
     - teleport_token is defined
     - teleport_token | length > 0
-    - app_block.changed
+    - app_block.changed or (force_teleport | default(false) | bool)
   register: token_update
   notify: restart teleport
 
@@ -75,7 +76,7 @@
     state: absent
   when:
     - teleport_config.stat.exists
-    - app_block.changed
+    - app_block.changed or (force_teleport | default(false) | bool)
   notify: restart teleport
 
 - name: Print access URL
