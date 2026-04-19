@@ -30,7 +30,7 @@ HUB_HOST="raspberrypi51"
 PI_USER="scott"
 REPO_URL="scottmishra/HomeManager"
 DEPLOY_DIR="/home/${PI_USER}/homemanager"
-BRANCH="teleport-test3"
+BRANCH="main"
 TELEPORT_CONTAINER="teleport"
 
 RED='\033[0;31m'
