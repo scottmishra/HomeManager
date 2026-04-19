@@ -43,6 +43,7 @@
         apps:
           - name: "{{ app_name }}"
             uri: "http://localhost:{{ app_port }}"
+            public_addr: "{{ app_name }}.{{ teleport_cluster }}"
             labels:
               env: "{{ app_env }}"
   when: teleport_config.stat.exists
