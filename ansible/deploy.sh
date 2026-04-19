@@ -41,6 +41,25 @@ warn()  { echo -e "${YELLOW}[!]${NC} $*"; }
 step()  { echo -e "${CYAN}[>]${NC} $*"; }
 error() { echo -e "${RED}[x]${NC} $*"; }
 
+# --- Error + exit traps: keep the window open no matter how the script ends ---
+on_error() {
+  echo -e "${RED}[x] Error on line $1: $2${NC}" >&2
+}
+on_exit() {
+  local code=$?
+  echo ""
+  if [[ $code -eq 0 ]]; then
+    echo -e "${GREEN}=== Deployment complete ===${NC}"
+  else
+    echo -e "${RED}=== Deployment FAILED (exit code: $code) ===${NC}"
+  fi
+  echo ""
+  read -n 1 -s -r -p "Press any key to close..." || true
+  echo ""
+}
+trap 'on_error $LINENO "$BASH_COMMAND"' ERR
+trap on_exit EXIT
+
 # --- Parse flags ---
 ANSIBLE_EXTRA_ARGS=()
 for arg in "$@"; do
