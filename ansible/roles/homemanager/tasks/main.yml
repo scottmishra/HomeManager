@@ -23,9 +23,10 @@
     return_content: yes
     status_code: 200
   register: health
-  until: health.status == 200
+  until: health.status is defined and health.status == 200
   retries: 30
   delay: 5
+  when: not ansible_check_mode
 
 - name: Check if Teleport is installed
   stat:
