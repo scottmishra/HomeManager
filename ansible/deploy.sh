@@ -12,11 +12,12 @@ set -euo pipefail
 #   5. Run the Ansible playbook locally on the Pi
 #
 # Usage:
-#   ./deploy.sh                     # interactive prompts
-#   ./deploy.sh --check             # Ansible dry-run
-#   ./deploy.sh --branch feature-x  # deploy a specific branch
+#   ./deploy.sh                           # auto-loads ../.env if present, else prompts
+#   ./deploy.sh --env-file path/to/.env   # load secrets from a specific file
+#   ./deploy.sh --check                   # Ansible dry-run
+#   ./deploy.sh --branch feature-x        # deploy a specific branch
 #
-# Skip prompts by exporting env vars:
+# Alternatively, skip prompts by exporting env vars:
 #   export SUPABASE_URL=...
 #   export SUPABASE_ANON_KEY=...
 #   export SUPABASE_SERVICE_ROLE_KEY=...
@@ -61,14 +62,29 @@ trap 'on_error $LINENO "$BASH_COMMAND"' ERR
 trap on_exit EXIT
 
 # --- Parse flags ---
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="${SCRIPT_DIR}/../.env"   # default: project-root .env
 ANSIBLE_EXTRA_ARGS=()
-for arg in "$@"; do
-  case "$arg" in
-    --branch)  shift; BRANCH="$1" ;;
-    --check)   ANSIBLE_EXTRA_ARGS+=("--check") ;;
-    *)         ANSIBLE_EXTRA_ARGS+=("$arg") ;;
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --branch)   BRANCH="$2"; shift 2 ;;
+    --env-file) ENV_FILE="$2"; shift 2 ;;
+    --check)    ANSIBLE_EXTRA_ARGS+=("--check"); shift ;;
+    *)          ANSIBLE_EXTRA_ARGS+=("$1"); shift ;;
   esac
 done
+
+# --- Load secrets from .env file if present ---
+if [[ -f "$ENV_FILE" ]]; then
+  log "Loading secrets from ${ENV_FILE}"
+  set -a                        # export all variables sourced below
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+else
+  warn "No .env file at ${ENV_FILE} — will prompt for secrets"
+fi
 
 # --- Collect secrets locally ---
 prompt_secret() {
